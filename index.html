@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="ro" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,6 +7,7 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
@@ -23,17 +24,22 @@
     </script>
 
     <style>
-        body { background-color: #F8FAFC; overflow-x: hidden; }
+        body { background-color: #F8FAFC; overflow-x: hidden; color: #0f172a; }
         .bg-gradient-viralio { background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%); }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #f1f5f9; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        /* Animațiile luate "de la prietenul tău" */
+        /* Modal de Login */
+        #login-modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+        #login-modal.show { display: flex; opacity: 1; }
+        .modal-content { background: #ffffff; border-radius: 28px; padding: 40px; text-align: center; max-width: 420px; width: 90%; transform: translateY(20px); transition: 0.4s; box-shadow: 0 40px 80px -20px rgba(0,0,0,0.2); }
+        #login-modal.show .modal-content { transform: translateY(0); }
+
+        /* Animații Buton */
         @keyframes slideLight {
             0% { transform: translateX(-100%); }
             60% { transform: translateX(100%); }
             100% { transform: translateX(100%); }
         }
-
         @keyframes bounceZoom {
             0% { transform: scale(0.7); opacity: 0; }
             60% { transform: scale(1.13); opacity: 1; }
@@ -42,30 +48,53 @@
         }
     </style>
 </head>
-<body class="md:p-4">
+<body class="md:p-4 flex flex-col min-h-screen relative">
 
-    <div class="bg-white md:rounded-[1.5rem] min-h-screen shadow-xl overflow-hidden relative pb-10 border border-slate-100">
-        
-        <div class="pointer-events-none absolute inset-0 overflow-hidden">
-            <div class="absolute top-[10%] right-[-10%] h-[500px] w-[500px] bg-red-500/10 rounded-full blur-[120px] mix-blend-multiply"></div>
-            <div class="absolute top-[30%] left-[-10%] h-[500px] w-[500px] bg-indigo-500/10 rounded-full blur-[120px] mix-blend-multiply"></div>
-        </div>
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute top-[10%] right-[-10%] h-[500px] w-[500px] bg-pink-500/10 rounded-full blur-[120px] mix-blend-multiply"></div>
+        <div class="absolute top-[30%] left-[-10%] h-[500px] w-[500px] bg-indigo-500/10 rounded-full blur-[120px] mix-blend-multiply"></div>
+    </div>
 
-        <div class="sticky top-0 z-50 flex w-full justify-center px-2 py-4 md:p-2 max-w-screen-2xl mx-auto">
-            <nav class="w-full rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-xl md:mx-12 shadow-sm px-5 md:px-8 py-3 flex justify-between items-center">
-                <a class="flex items-center font-black text-2xl tracking-tight text-slate-900" href="/">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-viralio flex items-center justify-center text-white mr-2.5 shadow-md"><i class="fa-solid fa-bolt"></i></div>
-                    Viralio
+    <div class="bg-white md:rounded-[1.5rem] flex-1 shadow-xl overflow-hidden relative border border-slate-100 flex flex-col z-10">
+
+        <div class="sticky top-0 z-50 flex w-full justify-center px-2 py-4 md:px-6 md:pt-4 pb-2">
+            <nav class="w-full rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-xl shadow-sm px-5 md:px-6 py-2.5 flex justify-between items-center max-w-screen-2xl">
+                <a class="flex items-center font-black text-xl tracking-tight text-slate-900 transition-opacity hover:opacity-80" href="https://viralio.ro">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-viralio flex items-center justify-center text-white mr-2.5 shadow-md"><i class="fa-solid fa-bolt text-sm"></i></div>
+                    Viralio <span class="hidden md:inline-block text-xs font-semibold text-slate-400 ml-2 border-l border-slate-200 pl-2 mt-1">Tutorial</span>
                 </a>
+                
                 <div class="flex items-center justify-end space-x-3">
-                    <a href="/login" class="px-5 py-2 bg-slate-900 text-white rounded-xl hover:bg-viralio-600 transition-all font-semibold shadow-md text-sm hidden md:block">
-                        Intră în cont
-                    </a>
+                    <button onclick="openLoginModal()" id="login-top-btn" class="px-5 py-2 bg-slate-900 text-white rounded-xl hover:bg-viralio-600 transition-all font-semibold shadow-md text-sm hidden sm:block">Conectează-te</button>
+                    <button onclick="openLoginModal()" id="login-top-btn-mobile" class="sm:hidden px-3 py-1.5 bg-slate-900 text-white rounded-lg font-bold text-xs"><i class="fa-solid fa-user"></i></button>
+                    
+                    <div id="user-profile" class="hidden items-center bg-slate-50 border border-slate-200 py-1 pl-1 pr-1.5 rounded-full transition-all">
+                        <img id="nav-avatar" src="" class="w-7 h-7 rounded-full border border-slate-200">
+                        <div class="flex flex-col leading-none ml-2 mr-2 hidden md:flex">
+                            <span id="nav-name" class="text-[0.7rem] font-bold text-slate-900 mb-0.5"></span>
+                            <span class="text-[0.6rem] font-bold text-viralio-600"><span id="nav-credits">0</span> Credite</span>
+                        </div>
+                        <a href="https://viralio.ro" class="hidden md:flex p-1.5 text-slate-500 hover:text-indigo-600 transition-colors ml-1 font-bold text-xs" title="Mergi la Ecosistem"><i class="fa-solid fa-arrow-right-to-bracket"></i></a>
+                        <button onclick="logout()" class="p-1.5 text-slate-400 hover:text-red-500 transition-colors rounded-full hover:bg-red-50 ml-1" title="Deconectare"><i class="fa-solid fa-power-off text-sm"></i></button>
+                    </div>
                 </div>
             </nav>
         </div>
 
-        <div class="relative z-10 w-full text-center pt-10 md:pt-16 px-4">
+        <div id="login-modal">
+            <div class="modal-content">
+                <button class="absolute top-4 right-5 text-slate-400 hover:text-slate-900" onclick="closeLoginModal()"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <div class="w-16 h-16 rounded-2xl bg-pink-50 text-pink-500 flex items-center justify-center text-3xl mx-auto mb-4 border border-pink-100"><i class="fas fa-fingerprint"></i></div>
+                <h2 class="text-2xl font-extrabold mb-2 text-slate-900">Intră în cont</h2>
+                <p class="text-slate-500 text-sm mb-6">Conectează-te pentru a accesa uneltele Viralio.</p>
+                <div class="flex justify-center bg-slate-50 py-3 rounded-2xl border border-slate-100">
+                    <div id="g_id_onload" data-client_id="743541351685-br4h5r61n3ai28bbhm9blt34944rju8p.apps.googleusercontent.com" data-context="signin" data-ux_mode="popup" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
+                    <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 w-full text-center pt-10 md:pt-16 px-4 flex-1">
             
             <h1 class="mx-auto max-w-4xl text-4xl md:text-[3.2rem] leading-tight font-extrabold tracking-tight text-slate-900 mb-8">
                 Cum să faci bani cu adevărat <br class="hidden md:block"> folosind <span class="text-transparent bg-clip-text bg-gradient-viralio">AI și YouTube Shorts</span>
@@ -74,7 +103,7 @@
             <div class="mx-auto mb-12 w-full max-w-[800px]">
                 <div class="relative aspect-video w-full overflow-hidden rounded-[1.5rem] border-[6px] border-slate-100 shadow-2xl bg-slate-900">
                     <iframe class="absolute top-0 left-0 w-full h-full" 
-                            src="https://www.youtube.com/embed/rFV6LF7MHCg?start=734" 
+                            src="https://www.youtube.com/embed/rFV6LF7MHCg" 
                             title="Cum să faci bani cu AI YouTube Shorts" 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                             allowfullscreen>
@@ -83,34 +112,99 @@
             </div>
 
             <div class="flex justify-center pb-20 md:pb-32">
-                <a href="/">
-                    <button class="relative inline-flex cursor-pointer items-center justify-center overflow-hidden rounded-2xl px-8 py-4 text-xl font-bold text-white shadow-xl transition-all focus:outline-none hover:opacity-95" 
-                            style="background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%); animation: bounceZoom 0.6s cubic-bezier(.68,-0.55,.27,1.55);">
-                        
-                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent" 
-                             style="animation: slideLight 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
-                        
-                        <span class="relative z-10 max-md:text-lg">Începe să folosești Viralio</span>
-                        <span class="relative z-10 ml-2 text-[1.5rem] leading-none">→</span>
-                    </button>
-                </a>
+                <button id="hero-btn" onclick="openLoginModal()" class="relative inline-flex cursor-pointer items-center justify-center overflow-hidden rounded-2xl px-8 py-4 text-xl font-bold text-white shadow-xl transition-all focus:outline-none hover:opacity-95 hover:scale-105" 
+                        style="background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%); animation: bounceZoom 0.6s cubic-bezier(.68,-0.55,.27,1.55);">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent" 
+                         style="animation: slideLight 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
+                    
+                    <span id="hero-btn-text" class="relative z-10 max-md:text-lg">Începe să folosești Viralio</span>
+                    <span class="relative z-10 ml-2 text-[1.5rem] leading-none">→</span>
+                </button>
             </div>
             
         </div>
 
-        <div class="border-t border-slate-200 mt-auto bg-slate-50 rounded-b-[1.5rem]">
-            <div class="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center text-slate-400 font-medium text-sm">
-                    <i class="fa-solid fa-bolt mr-2"></i> Viralio. Toate drepturile rezervate. © 2026
+        <footer class="border-t border-slate-100 bg-slate-50 mt-auto">
+            <div class="max-w-screen-2xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center text-slate-500 font-medium text-sm">
+                    <i class="fa-solid fa-bolt mr-2 text-pink-500"></i> Viralio. Toate drepturile rezervate. © 2026
                 </div>
                 <div class="flex gap-6 text-sm font-medium text-slate-500">
-                    <a href="#" class="hover:text-slate-900 transition-colors">Termeni și Condiții</a>
-                    <a href="#" class="hover:text-slate-900 transition-colors">Confidențialitate</a>
+                    <a href="https://viralio.ro" class="hover:text-slate-900 transition-colors">Termeni și Condiții</a>
+                    <a href="https://viralio.ro" class="hover:text-slate-900 transition-colors">Politică de Confidențialitate</a>
                 </div>
             </div>
-        </div>
+        </footer>
 
     </div>
 
+<script>
+        const loginModal = document.getElementById('login-modal');
+        function openLoginModal() { loginModal.classList.add('show'); }
+        function closeLoginModal() { loginModal.classList.remove('show'); }
+
+        function setToken(token) { document.cookie = "viralio_token=" + token + "; domain=.viralio.ro; path=/; max-age=604800; Secure; SameSite=Lax"; }
+        function getToken() { const match = document.cookie.match(/(?:^|; )viralio_token=([^;]*)/); return match ? match[1] : null; }
+        function removeToken() { document.cookie = "viralio_token=; domain=.viralio.ro; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"; }
+
+        window.handleCredentialResponse = async function(response) {
+            try {
+                // MODIFICAT: Adresă absolută către backend-ul hub-ului
+                const res = await fetch('https://viralio.ro/api/auth/google', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ credential: response.credential }) 
+                });
+                const data = await res.json();
+                if(data.token) { 
+                    setToken(data.token); 
+                    closeLoginModal(); 
+                    // Redirecționăm direct spre Hub după login
+                    window.location.href = 'https://viralio.ro';
+                } else { alert("Eroare la generare token"); }
+            } catch (e) { alert('Eroare conexiune cu serverul.'); }
+        }
+
+        function updateUI(user) {
+            // Ascunde butoanele de login din meniu
+            const btnDesktop = document.getElementById('login-top-btn');
+            const btnMobile = document.getElementById('login-top-btn-mobile');
+            if(btnDesktop) btnDesktop.setAttribute('style', 'display: none !important');
+            if(btnMobile) btnMobile.setAttribute('style', 'display: none !important');
+
+            // Afiseaza profilul din meniu
+            const userNav = document.getElementById('user-profile');
+            if(userNav){
+                userNav.classList.remove('hidden'); 
+                userNav.style.display = 'flex';
+            }
+            
+            // Completează datele utilizatorului
+            document.getElementById('nav-name').innerText = user.name.split(' ')[0];
+            document.getElementById('nav-avatar').src = user.picture;
+            document.getElementById('nav-credits').innerText = user.credits;
+
+            // Schimbă butonul mare central să ducă la Dashboard
+            const heroBtn = document.getElementById('hero-btn');
+            if(heroBtn) {
+                document.getElementById('hero-btn-text').innerText = "Mergi la Dashboard";
+                heroBtn.onclick = function() { window.location.href = 'https://viralio.ro'; };
+            }
+        }
+
+        function logout() { removeToken(); location.reload(); }
+
+        window.onload = async () => {
+            const token = getToken();
+            if(token) {
+                try {
+                    // MODIFICAT: Adresă absolută către backend-ul hub-ului pentru verificarea sesiunii
+                    const res = await fetch('https://viralio.ro/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                    if(res.ok) { const data = await res.json(); updateUI(data.user); }
+                    else { removeToken(); }
+                } catch (e) {}
+            }
+        };
+    </script>
 </body>
 </html>
