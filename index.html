@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Cum să faci bani cu AI & YouTube Shorts | Viralio</title>
     
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -124,7 +126,7 @@
             
         </div>
 
-        <footer class="border-t border-slate-100 bg-slate-50 mt-auto">
+        <footer class="border-t border-slate-100 bg-slate-50 mt-auto rounded-b-[1.5rem]">
             <div class="max-w-screen-2xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center text-slate-500 font-medium text-sm">
                     <i class="fa-solid fa-bolt mr-2 text-pink-500"></i> Viralio. Toate drepturile rezervate. © 2026
@@ -138,7 +140,7 @@
 
     </div>
 
-<script>
+    <script>
         const loginModal = document.getElementById('login-modal');
         function openLoginModal() { loginModal.classList.add('show'); }
         function closeLoginModal() { loginModal.classList.remove('show'); }
@@ -149,42 +151,44 @@
 
         window.handleCredentialResponse = async function(response) {
             try {
-                // MODIFICAT: Adresă absolută către backend-ul hub-ului
-                const res = await fetch('https://viralio.ro/api/auth/google', { 
+                // Modificat cu endpoint-ul folosit de tine în HUB pentru Auth
+                const res = await fetch('https://downloader.viralio.ro/api/auth/google', {
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ credential: response.credential }) 
                 });
                 const data = await res.json();
+                
+                if (!res.ok && data.error === 'BETA_FULL') {
+                    closeLoginModal();
+                    alert("Ne pare rău, locurile beta sunt momentan epuizate!");
+                    return;
+                }
+
                 if(data.token) { 
                     setToken(data.token); 
                     closeLoginModal(); 
-                    // Redirecționăm direct spre Hub după login
                     window.location.href = 'https://viralio.ro';
                 } else { alert("Eroare la generare token"); }
             } catch (e) { alert('Eroare conexiune cu serverul.'); }
         }
 
         function updateUI(user) {
-            // Ascunde butoanele de login din meniu
             const btnDesktop = document.getElementById('login-top-btn');
             const btnMobile = document.getElementById('login-top-btn-mobile');
             if(btnDesktop) btnDesktop.setAttribute('style', 'display: none !important');
             if(btnMobile) btnMobile.setAttribute('style', 'display: none !important');
 
-            // Afiseaza profilul din meniu
             const userNav = document.getElementById('user-profile');
             if(userNav){
                 userNav.classList.remove('hidden'); 
                 userNav.style.display = 'flex';
             }
             
-            // Completează datele utilizatorului
             document.getElementById('nav-name').innerText = user.name.split(' ')[0];
             document.getElementById('nav-avatar').src = user.picture;
             document.getElementById('nav-credits').innerText = user.credits;
 
-            // Schimbă butonul mare central să ducă la Dashboard
             const heroBtn = document.getElementById('hero-btn');
             if(heroBtn) {
                 document.getElementById('hero-btn-text').innerText = "Mergi la Dashboard";
@@ -198,8 +202,8 @@
             const token = getToken();
             if(token) {
                 try {
-                    // MODIFICAT: Adresă absolută către backend-ul hub-ului pentru verificarea sesiunii
-                    const res = await fetch('https://viralio.ro/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                    // Modificat cu endpoint-ul folosit de tine în HUB pentru Validare
+                    const res = await fetch('https://downloader.viralio.ro/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
                     if(res.ok) { const data = await res.json(); updateUI(data.user); }
                     else { removeToken(); }
                 } catch (e) {}
